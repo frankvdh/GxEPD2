@@ -12,8 +12,22 @@
 #ifndef _GxEPD2_H_
 #define _GxEPD2_H_
 
+#if defined(RPI) || defined(WIN32)
+#include <iostream>
+#include <unistd.h>
+#include "RPI_SPI.h"
+#define LOW 0
+#define HIGH 1
+#define INPUT 0
+#define OUTPUT 1
+#define INPUT_PULLUP 1
+#define PROGMEM
+#define pgm_read_byte(p) ((const uint8_t)(*p))
+#else
 #include <Arduino.h>
 #include <SPI.h>
+#endif // RPI
+#include "Debug.h"
 
 // color definitions for GxEPD, GxEPD2 and GxEPD_HD, values correspond to RGB565 values for TFTs
 #define GxEPD_BLACK     0x0000
@@ -45,12 +59,10 @@ class GxEPD2
       GDEH0213B73,  Waveshare_2_13_bw_B73 = GDEH0213B73,
       GDEW0213I5F, Waveshare_2_13_flex = GDEW0213I5F,
       GDEW0213M21,
-      GDEW0213T5D,
       GDEW026T0,  Waveshare_2_6_bw = GDEW026T0,
       GDEW026M01,
       GDEH029A1,  Waveshare_2_9_bw = GDEH029A1,
       GDEW029T5,  Waveshare_2_9_bw_T5 = GDEW029T5,
-      GDEW029T5D,
       GDEW029M06,
       GDEM029T94,
       GDEW027W3,  Waveshare_2_7_bw = GDEW027W3,
@@ -68,9 +80,7 @@ class GxEPD2
       GDEW0154Z04, Waveshare_1_54_bwr = GDEW0154Z04,
       GDEH0154Z90, Waveshare_1_54_bwr_Z90 = GDEH0154Z90,
       GDEW0213Z16, Waveshare_2_13_bwr = GDEW0213Z16,
-      GDEW0213Z19,
       GDEW029Z10,  Waveshare_2_9_bwr = GDEW029Z10,
-      GDEH029Z13,
       GDEM029C90,
       GDEW027C44,  Waveshare_2_7_bwr = GDEW027C44,
       GDEW042Z15,  Waveshare_4_2_bwr = GDEW042Z15,

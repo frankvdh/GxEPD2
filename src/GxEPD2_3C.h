@@ -8,7 +8,7 @@
 // Version: see library.properties
 //
 // Library: https://github.com/ZinggJM/GxEPD2
-
+#define DEBUG
 #ifndef _GxEPD2_3C_H_
 #define _GxEPD2_3C_H_
 // uncomment next line to use class GFX of library GFX_Root instead of Adafruit_GFX
@@ -30,20 +30,11 @@
 #endif
 
 #include "GxEPD2_EPD.h"
-#include "epd3c/GxEPD2_154c.h"
-#include "epd3c/GxEPD2_154_Z90c.h"
+#ifdef RPI
+#include "BMPfile.h"
+#endif // RPI
 #include "epd3c/GxEPD2_213c.h"
-#include "epd3c/GxEPD2_213_Z19c.h"
-#include "epd3c/GxEPD2_290c.h"
-#include "epd3c/GxEPD2_290_Z13c.h"
-#include "epd3c/GxEPD2_290_C90c.h"
-#include "epd3c/GxEPD2_270c.h"
 #include "epd3c/GxEPD2_420c.h"
-#include "epd3c/GxEPD2_583c.h"
-#include "epd3c/GxEPD2_565c.h"
-#include "epd3c/GxEPD2_750c.h"
-#include "epd3c/GxEPD2_750c_Z08.h"
-#include "epd3c/GxEPD2_750c_Z90.h"
 
 template<typename GxEPD2_Type, const uint16_t page_height>
 class GxEPD2_3C : public GxEPD2_GFX_BASE_CLASS
@@ -219,22 +210,22 @@ class GxEPD2_3C : public GxEPD2_GFX_BASE_CLASS
       uint16_t page_ys = _current_page * _page_height;
       if (_using_partial_mode)
       {
-        //Serial.print("  nextPage("); Serial.print(_pw_x); Serial.print(", "); Serial.print(_pw_y); Serial.print(", ");
-        //Serial.print(_pw_w); Serial.print(", "); Serial.print(_pw_h); Serial.print(") P"); Serial.println(_current_page);
+        //Debug("  nextPage("); Debug(_pw_x); Debug(", "); Debug(_pw_y); Debug(", ");
+        //Debug(_pw_w); Debug(", "); Debug(_pw_h); Debug(") P"); Debugln(_current_page);
         uint16_t page_ye = _current_page < (_pages - 1) ? page_ys + _page_height : HEIGHT;
         uint16_t dest_ys = _pw_y + page_ys; // transposed
         uint16_t dest_ye = gx_uint16_min(_pw_y + _pw_h, _pw_y + page_ye);
         if (dest_ye > dest_ys)
         {
-          //Serial.print("writeImage("); Serial.print(_pw_x); Serial.print(", "); Serial.print(dest_ys); Serial.print(", ");
-          //Serial.print(_pw_w); Serial.print(", "); Serial.print(dest_ye - dest_ys); Serial.println(")");
+          //Debug("writeImage("); Debug(_pw_x); Debug(", "); Debug(dest_ys); Debug(", ");
+          //Debug(_pw_w); Debug(", "); Debug(dest_ye - dest_ys); Debugln(")");
           epd2.writeImage(_black_buffer, _color_buffer, _pw_x, dest_ys, _pw_w, dest_ye - dest_ys);
         }
         else
         {
-          //Serial.print("writeImage("); Serial.print(_pw_x); Serial.print(", "); Serial.print(dest_ys); Serial.print(", ");
-          //Serial.print(_pw_w); Serial.print(", "); Serial.print(dest_ye - dest_ys); Serial.print(") skipped ");
-          //Serial.print(dest_ys); Serial.print(".."); Serial.println(dest_ye);
+          //Debug("writeImage("); Debug(_pw_x); Debug(", "); Debug(dest_ys); Debug(", ");
+          //Debug(_pw_w); Debug(", "); Debug(dest_ye - dest_ys); Debug(") skipped ");
+          //Debug(dest_ys); Debug(".."); Debugln(dest_ye);
         }
         _current_page++;
         if (_current_page == _pages)
@@ -384,6 +375,11 @@ class GxEPD2_3C : public GxEPD2_GFX_BASE_CLASS
     {
       epd2.writeImagePart(black, color, x_part, y_part, w_bitmap, h_bitmap, x, y, w, h, invert, mirror_y, pgm);
     }
+
+    bool writeBmpFile(const char *path, int16_t x, int16_t y, const uint16_t colour, uint8_t invert = 0, bool mirror_y = false) {
+        return readBmp_Mono(path, colour == GxEPD_BLACK || colour == GxEPD_WHITE ? _black_buffer : _color_buffer, x, y, invert, mirror_y);
+    }
+
     void writeImagePart(const uint8_t* black, const uint8_t* color, int16_t x_part, int16_t y_part, int16_t w_bitmap, int16_t h_bitmap,
                         int16_t x, int16_t y, int16_t w, int16_t h)
     {
@@ -400,7 +396,7 @@ class GxEPD2_3C : public GxEPD2_GFX_BASE_CLASS
       epd2.drawImage(bitmap, x, y, w, h, invert, mirror_y, pgm);
     }
     void drawImagePart(const uint8_t bitmap[], int16_t x_part, int16_t y_part, int16_t w_bitmap, int16_t h_bitmap,
-                       int16_t x, int16_t y, int16_t w, int16_t h, bool invert = false, bool mirror_y = false, bool pgm = false)
+                        int16_t x, int16_t y, int16_t w, int16_t h, bool invert = false, bool mirror_y = false, bool pgm = false)
     {
       epd2.drawImagePart(bitmap, x_part, y_part, w_bitmap, h_bitmap, x, y, w, h, invert, mirror_y, pgm);
     }
@@ -413,12 +409,12 @@ class GxEPD2_3C : public GxEPD2_GFX_BASE_CLASS
       epd2.drawImage(black, color, x, y, w, h, false, false, false);
     }
     void drawImagePart(const uint8_t* black, const uint8_t* color, int16_t x_part, int16_t y_part, int16_t w_bitmap, int16_t h_bitmap,
-                       int16_t x, int16_t y, int16_t w, int16_t h, bool invert, bool mirror_y, bool pgm)
+                        int16_t x, int16_t y, int16_t w, int16_t h, bool invert, bool mirror_y, bool pgm)
     {
       epd2.drawImagePart(black, color, x_part, y_part, w_bitmap, h_bitmap, x, y, w, h, invert, mirror_y, pgm);
     }
     void drawImagePart(const uint8_t* black, const uint8_t* color, int16_t x_part, int16_t y_part, int16_t w_bitmap, int16_t h_bitmap,
-                       int16_t x, int16_t y, int16_t w, int16_t h)
+                        int16_t x, int16_t y, int16_t w, int16_t h)
     {
       epd2.drawImagePart(black, color, x_part, y_part, w_bitmap, h_bitmap, x, y, w, h, false, false, false);
     }
@@ -482,6 +478,7 @@ class GxEPD2_3C : public GxEPD2_GFX_BASE_CLASS
           break;
       }
     }
+
   private:
     uint8_t _black_buffer[(GxEPD2_Type::WIDTH / 8) * page_height];
     uint8_t _color_buffer[(GxEPD2_Type::WIDTH / 8) * page_height];

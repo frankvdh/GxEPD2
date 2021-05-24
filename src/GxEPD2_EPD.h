@@ -12,10 +12,18 @@
 #ifndef _GxEPD2_EPD_H_
 #define _GxEPD2_EPD_H_
 
+#ifdef WIN32
+#else
+#ifdef RPI
+#include <wiringPi.h>   // for delay()
+#include "RPI_SPI.h"
+#else
 #include <Arduino.h>
-#include <SPI.h>
+#include "SPI.h"
+#endif
+#endif
 
-#include <GxEPD2.h>
+#include "GxEPD2.h"
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
@@ -34,7 +42,7 @@ class GxEPD2_EPD
                uint16_t w, uint16_t h, GxEPD2::Panel p, bool c, bool pu, bool fpu);
     virtual void init(uint32_t serial_diag_bitrate = 0); // serial_diag_bitrate = 0 : disabled
     virtual void init(uint32_t serial_diag_bitrate, bool initial, uint16_t reset_duration = 20, bool pulldown_rst_mode = false);
-    //  Support for Bitmaps (Sprites) to Controller Buffer and to Screen
+   //  Support for Bitmaps (Sprites) to Controller Buffer and to Screen
     virtual void clearScreen(uint8_t value) = 0; // init controller memory and screen (default white)
     virtual void writeScreenBuffer(uint8_t value) = 0; // init controller memory (default white)
     // write to controller memory, without screen refresh; x and w should be multiple of 8
