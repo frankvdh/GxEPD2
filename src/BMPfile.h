@@ -45,7 +45,22 @@
 
 #include <stdint.h>
 
-bool readBmp_Mono(const char *path, uint8_t *buffer, int16_t xStart, int16_t yStart, uint16_t bufWidth, uint16_t bufHeight, uint8_t invert = 0, bool mirrorY = false);
+/*Bitmap information header  40bit*/
+typedef struct BMP_INFO {
+    uint32_t biInfoSize;      //The size of the header
+    uint32_t biWidth;         //The width of the image
+    uint32_t biHeight;        //The height of the image
+    uint16_t biPlanes;          //The number of planes in the image
+    uint16_t biBitCount;        //The number of bits per pixel
+    uint32_t biCompression;   //Compression type
+    uint32_t bimpImageSize;   //The size of the image, in bytes
+    uint32_t biXPelsPerMeter; //Horizontal resolution
+    uint32_t biYPelsPerMeter; //Vertical resolution
+    uint32_t biClrUsed;       //The number of colors used
+    uint32_t biClrImportant;  //The number of important colors
+} __attribute__ ((packed)) BMPINFOHEADER;
+
+uint8_t *readBmp_Mono(const char *path, BMP_INFO &info);
 bool readBmp_4Gray(const char *path, uint8_t *buffer, int16_t xStart, int16_t yStart, uint16_t bufWidth, uint16_t bufHeight, uint8_t invert = 0, bool mirrorY = false);
 bool readBmp_RGB_7Color(const char *path, uint8_t *buffer, int16_t xStart, int16_t yStart, uint16_t bufWidth, uint16_t bufHeight, bool invert = false, bool mirrorY = false);
 #endif

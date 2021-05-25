@@ -43,9 +43,10 @@
 
 #include <stdio.h>
 
+#define DEBUG
+#include "Debug.h"
 #include "BMPfile.h"
 #include "GxEPD2.h"
-#include "Debug.h"
 
 /*Bitmap file header   14bit*/
 typedef struct BMP_FILE_HEADER {
@@ -55,21 +56,6 @@ typedef struct BMP_FILE_HEADER {
     uint16_t bReserved2;   //Reserved value, must be set to 0
     uint32_t bOffset;    //The offset from the beginning of the file header to the beginning of the image data bit
 } __attribute__ ((packed)) BMPFILEHEADER;    // 14bit
-
-/*Bitmap information header  40bit*/
-typedef struct BMP_INFO {
-    uint32_t biInfoSize;      //The size of the header
-    uint32_t biWidth;         //The width of the image
-    uint32_t biHeight;        //The height of the image
-    uint16_t biPlanes;          //The number of planes in the image
-    uint16_t biBitCount;        //The number of bits per pixel
-    uint32_t biCompression;   //Compression type
-    uint32_t bimpImageSize;   //The size of the image, in bytes
-    uint32_t biXPelsPerMeter; //Horizontal resolution
-    uint32_t biYPelsPerMeter; //Vertical resolution
-    uint32_t biClrUsed;       //The number of colors used
-    uint32_t biClrImportant;  //The number of important colors
-} __attribute__ ((packed)) BMPINFOHEADER;
 
 /*Color table: palette */
 typedef struct RGB_QUAD {
@@ -92,16 +78,16 @@ Params: path -- path to file
         mirrorY: Invert the image in the Y axis
 *************************************************************************/
 
-bool readBmp_Mono(const char *path, uint8_t *buffer, int16_t xStart, int16_t yStart, uint16_t bufWidth, uint16_t bufHeight, uint8_t invert, bool mirrorY) {
+uint8_t *readBmp_Mono(const char *path, BMPINFOHEADER &bmpInfoHeader) {
     // Binary file open
     FILE *fp;
     if((fp = fopen(path, "rb")) == NULL) {
-        Debug("Cann't open the file!\n");
-        return false;
+        Debug("Can't open %s\n", path);
+        return NULL;
     }
 
     BMPFILEHEADER bmpFileHeader;
-    BMPINFOHEADER bmpInfoHeader;
+
     // Set the file pointer from the beginning
     fseek(fp, 0, SEEK_SET);
     fread(&bmpFileHeader, sizeof(BMPFILEHEADER), 1, fp);    //sizeof(BMPFILEHEADER) must be 14
@@ -112,11 +98,10 @@ bool readBmp_Mono(const char *path, uint8_t *buffer, int16_t xStart, int16_t ySt
     if(bmpInfoHeader.biBitCount != 1) {
         Debug("%s is not a monochrome bitmap!\n", path);
         fclose(fp);
-        return false;
+        return NULL;
     }
 
     uint16_t Image_Width_Byte = (bmpInfoHeader.biWidth % 8 == 0)? (bmpInfoHeader.biWidth / 8): (bmpInfoHeader.biWidth / 8 + 1);
-    uint16_t bufWidthByte = (bufWidth % 8 == 0)? (bufWidth / 8): (bufWidth / 8 + 1);
     uint16_t Bmp_Width_Byte = (Image_Width_Byte % 4 == 0) ? Image_Width_Byte: ((Image_Width_Byte / 4 + 1) * 4);
 
     // Determine black and white based on the palette
@@ -125,23 +110,17 @@ bool readBmp_Mono(const char *path, uint8_t *buffer, int16_t xStart, int16_t ySt
     fread(&bmprgbquad, sizeof(BMPRGBQUAD), bmprgbquadsize, fp);
 
     // Read image data into the cache
-    uint8_t Rdata;
+    uint8_t *buffer = (uint8_t *)malloc(bmpInfoHeader.biHeight * Bmp_Width_Byte);
     fseek(fp, bmpFileHeader.bOffset, SEEK_SET);
     for(uint16_t y = 0; y < bmpInfoHeader.biHeight; y++) {//Total display column
-        for(uint16_t x = 0; x < Bmp_Width_Byte; x++) {//Show a line in the line
-            if(fread((char *)&Rdata, 1, 1, fp) != 1) {
+            if(fread((char *)buffer + y * Bmp_Width_Byte, 1, Bmp_Width_Byte, fp) != Bmp_Width_Byte) {
                 Debug("read failed: %s\n", path);
                 fclose(fp);
-                return false;
+                return NULL;
             }
-            if(x*8 + xStart >= 0 && y + yStart >= 0 && x + xStart < bufWidthByte && x * 8 + xStart < bufWidth  && y + yStart < bufHeight) { //bmp
-                buffer[x + xStart + ((mirrorY ? y : bmpInfoHeader.biHeight - y - 1) + yStart) * bufWidthByte] =  Rdata ^ invert;
-                // Debug("rdata = %d\r\n", Rdata);
-            }
-        }
-    }
+     }
     fclose(fp);
-    return true;
+    return buffer;
 }
 
 /*************************************************************************
@@ -161,7 +140,7 @@ bool readBmp_4Gray(const char *path, uint8_t *buffer, uint16_t xStart, uint16_t 
     // Binary file open
     FILE *fp;
     if((fp = fopen(path, "rb")) == NULL) {
-        Debug("Cann't open the file!\n");
+        Debug("Can't open %s\n", path);
         return false;
     }
 
@@ -221,7 +200,7 @@ bool readBmp_RGB_7Color(const char *path, uint16_t *buffer, uint16_t xStart, uin
     // Binary file open
     FILE *fp;
     if((fp = fopen(path, "rb")) == NULL) {
-        Debug("Cann't open the file!\n");
+        Debug("Can't open %s\n", path);
         return false;
     }
 
