@@ -54,6 +54,9 @@ class GxEPD2_213_M21 : public GxEPD2_EPD
                        int16_t x, int16_t y, int16_t w, int16_t h, bool invert = false, bool mirror_y = false, bool pgm = false);
     // write sprite of native data to controller memory, with screen refresh; x and w should be multiple of 8
     void drawNative(const uint8_t* data1, const uint8_t* data2, int16_t x, int16_t y, int16_t w, int16_t h, bool invert = false, bool mirror_y = false, bool pgm = false);
+    #ifdef RPI
+    bool drawBmpFile(const char *path, uint16_t x, uint16_t y, uint8_t invert, bool mirrorY);
+    #endif
     void refresh(bool partial_update_mode = false); // screen refresh from controller memory to full screen
     void refresh(int16_t x, int16_t y, int16_t w, int16_t h); // screen refresh from controller memory, partial screen
     void powerOff(); // turns off generation of panel driving voltages, avoids screen fading over time
