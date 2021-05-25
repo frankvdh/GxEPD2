@@ -1,11 +1,14 @@
 #ifndef _GxBitmaps3c104x212_H_
 #define _GxBitmaps3c104x212_H_
 
+#ifdef RPI
+#else
 #if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>
 #else
 #include <avr/pgmspace.h>
 #endif
+#endif // RPI
 
 #include "WS_Bitmaps3c104x212.h"
 

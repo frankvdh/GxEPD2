@@ -26,11 +26,14 @@
 #ifndef _WS_Bitmaps3c400x300_H_
 #define _WS_Bitmaps3c400x300_H_
 
+#ifdef RPI
+#else
 #if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>
 #else
 #include <avr/pgmspace.h>
 #endif
+#endif // RPI
 
 const unsigned char WS_Bitmap3c400x300_black[] PROGMEM = {
 /* 0X00,0X01,0X90,0X01,0X2C,0X01, */
