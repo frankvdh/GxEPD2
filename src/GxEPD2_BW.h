@@ -61,6 +61,10 @@
 #include "it8951/GxEPD2_it60.h"
 #include "it8951/GxEPD2_it60_1448x1072.h"
 
+#ifdef RPI
+#include "BMPfile.h"
+#endif
+
 template<typename GxEPD2_Type, const uint16_t page_height>
 class GxEPD2_BW : public GxEPD2_GFX_BASE_CLASS
 {
@@ -134,19 +138,20 @@ class GxEPD2_BW : public GxEPD2_GFX_BASE_CLASS
         _buffer[i] = (_buffer[i] & (0xFF ^ (1 << (7 - x % 8))));
     }
 
-    void init(uint32_t serial_diag_bitrate = 0) // = 0 : disabled
+    bool init(uint32_t serial_diag_bitrate = 0) // = 0 : disabled
     {
       epd2.init(serial_diag_bitrate);
       _using_partial_mode = false;
       _current_page = 0;
       setFullWindow();
+      return 1;
     }
 
     // init method with additional parameters:
     // initial false for re-init after processor deep sleep wake up, if display power supply was kept
     // this can be used to avoid the repeated initial full refresh on displays with fast partial update
     // NOTE: garbage will result on fast partial update displays, if initial full update is omitted after power loss
-    // reset_duration = 20 is default; a value of 2 may help with "clever" reset circuit of newer boards from Waveshare 
+    // reset_duration = 20 is default; a value of 2 may help with "clever" reset circuit of newer boards from Waveshare
     // pulldown_rst_mode true for alternate RST handling to avoid feeding 5V through RST pin
     void init(uint32_t serial_diag_bitrate, bool initial, uint16_t reset_duration = 20, bool pulldown_rst_mode = false)
     {
@@ -266,24 +271,24 @@ class GxEPD2_BW : public GxEPD2_GFX_BASE_CLASS
       uint16_t page_ys = _current_page * _page_height;
       if (_using_partial_mode)
       {
-        //Serial.print("  nextPage("); Serial.print(_pw_x); Serial.print(", "); Serial.print(_pw_y); Serial.print(", ");
-        //Serial.print(_pw_w); Serial.print(", "); Serial.print(_pw_h); Serial.print(") P"); Serial.println(_current_page);
+        //Debug("  nextPage("); Debug(_pw_x); Debug(", "); Debug(_pw_y); Debug(", ");
+        //Debug(_pw_w); Debug(", "); Debug(_pw_h); Debug(") P"); Debugln(_current_page);
         uint16_t page_ye = _current_page < (_pages - 1) ? page_ys + _page_height : HEIGHT;
         uint16_t dest_ys = _pw_y + page_ys; // transposed
         uint16_t dest_ye = gx_uint16_min(_pw_y + _pw_h, _pw_y + page_ye);
         if (dest_ye > dest_ys)
         {
-          //Serial.print("writeImage("); Serial.print(_pw_x); Serial.print(", "); Serial.print(dest_ys); Serial.print(", ");
-          //Serial.print(_pw_w); Serial.print(", "); Serial.print(dest_ye - dest_ys); Serial.println(")");
+          //Debug("writeImage("); Debug(_pw_x); Debug(", "); Debug(dest_ys); Debug(", ");
+          //Debug(_pw_w); Debug(", "); Debug(dest_ye - dest_ys); Debugln(")");
           uint32_t offset = _reverse ? (_page_height - (dest_ye - dest_ys)) * _pw_w / 8 : 0;
           if (!_second_phase) epd2.writeImage(_buffer + offset, _pw_x, dest_ys, _pw_w, dest_ye - dest_ys);
           else epd2.writeImageAgain(_buffer + offset, _pw_x, dest_ys, _pw_w, dest_ye - dest_ys);
         }
         else
         {
-          //Serial.print("writeImage("); Serial.print(_pw_x); Serial.print(", "); Serial.print(dest_ys); Serial.print(", ");
-          //Serial.print(_pw_w); Serial.print(", "); Serial.print(dest_ye - dest_ys); Serial.print(") skipped ");
-          //Serial.print(dest_ys); Serial.print(".."); Serial.println(dest_ye);
+          //Debug("writeImage("); Debug(_pw_x); Debug(", "); Debug(dest_ys); Debug(", ");
+          //Debug(_pw_w); Debug(", "); Debug(dest_ye - dest_ys); Debug(") skipped ");
+          //Debug(dest_ys); Debug(".."); Debugln(dest_ye);
         }
         _current_page++;
         if (_current_page == _pages)
@@ -509,6 +514,17 @@ class GxEPD2_BW : public GxEPD2_GFX_BASE_CLASS
     {
       epd2.drawImagePart(black, color, x_part, y_part, w_bitmap, h_bitmap, x, y, w, h, false, false, false);
     }
+#ifdef RPI
+    bool drawBmpFile(const char *path, int16_t x, int16_t y, bool invert = false, bool mirror_y = false) {
+      BMP_INFO info;
+      uint8_t *buffer = readBmp_Mono(path, info);
+
+      if (buffer == NULL ) return false;
+      writeImagePart(buffer, 0, 0, info.biWidth, info.biHeight, x, y, info.biWidth, info.biHeight, !invert, mirror_y);
+      refresh(true);
+      return true;
+    }
+#endif
     // write sprite of native data to controller memory, with screen refresh; x and w should be multiple of 8
     void drawNative(const uint8_t* data1, const uint8_t* data2, int16_t x, int16_t y, int16_t w, int16_t h, bool invert, bool mirror_y, bool pgm)
     {

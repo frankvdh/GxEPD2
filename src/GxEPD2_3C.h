@@ -33,14 +33,24 @@
 #ifdef RPI
 #include "BMPfile.h"
 #endif // RPI
+#include "epd3c/GxEPD2_154c.h"
+#include "epd3c/GxEPD2_154_Z90c.h"
 #include "epd3c/GxEPD2_213c.h"
+#include "epd3c/GxEPD2_290c.h"
+#include "epd3c/GxEPD2_270c.h"
 #include "epd3c/GxEPD2_420c.h"
+#include "epd3c/GxEPD2_583c.h"
+#include "epd3c/GxEPD2_565c.h"
+#include "epd3c/GxEPD2_750c.h"
+#include "epd3c/GxEPD2_750c_Z08.h"
+#include "epd3c/GxEPD2_750c_Z90.h"
 
 template<typename GxEPD2_Type, const uint16_t page_height>
 class GxEPD2_3C : public GxEPD2_GFX_BASE_CLASS
 {
   public:
     GxEPD2_Type epd2;
+RPI_SPI SPI;
 #if ENABLE_GxEPD2_GFX
     GxEPD2_3C(GxEPD2_Type epd2_instance) : GxEPD2_GFX_BASE_CLASS(epd2, GxEPD2_Type::WIDTH, GxEPD2_Type::HEIGHT), epd2(epd2_instance)
 #else
@@ -108,12 +118,13 @@ class GxEPD2_3C : public GxEPD2_GFX_BASE_CLASS
       else if ((color == GxEPD_RED) || (color == GxEPD_YELLOW)) _color_buffer[i] = (_color_buffer[i] & (0xFF ^ (1 << (7 - x % 8))));
     }
 
-    void init(uint32_t serial_diag_bitrate = 0) // = 0 : disabled
+    bool init(uint32_t serial_diag_bitrate = 0) // = 0 : disabled
     {
       epd2.init(serial_diag_bitrate);
       _using_partial_mode = false;
       _current_page = 0;
       setFullWindow();
+      return 1;
     }
 
     // init method with additional parameters:
@@ -377,7 +388,7 @@ class GxEPD2_3C : public GxEPD2_GFX_BASE_CLASS
     }
 
     bool writeBmpFile(const char *path, int16_t x, int16_t y, const uint16_t colour, uint8_t invert = 0, bool mirror_y = false) {
-        return readBmp_Mono(path, colour == GxEPD_BLACK || colour == GxEPD_WHITE ? _black_buffer : _color_buffer, x, y, invert, mirror_y);
+        return readBmp_Mono(path, colour == GxEPD_BLACK || colour == GxEPD_WHITE ? _black_buffer : _color_buffer, x, y, WIDTH, HEIGHT, invert, mirror_y);
     }
 
     void writeImagePart(const uint8_t* black, const uint8_t* color, int16_t x_part, int16_t y_part, int16_t w_bitmap, int16_t h_bitmap,

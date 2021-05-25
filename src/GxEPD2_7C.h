@@ -30,6 +30,9 @@
 #endif
 
 #include "GxEPD2_EPD.h"
+#ifdef RPI
+#include "BMPfile.h"
+#endif // RPI
 #include "epd3c/GxEPD2_565c.h"
 
 template<typename GxEPD2_Type, const uint16_t page_height>
@@ -200,22 +203,22 @@ class GxEPD2_7C : public GxEPD2_GFX_BASE_CLASS
       uint16_t page_ys = _current_page * _page_height;
       if (_using_partial_mode)
       {
-        //Serial.print("  nextPage("); Serial.print(_pw_x); Serial.print(", "); Serial.print(_pw_y); Serial.print(", ");
-        //Serial.print(_pw_w); Serial.print(", "); Serial.print(_pw_h); Serial.print(") P"); Serial.println(_current_page);
+        //Debug("  nextPage("); Debug(_pw_x); Debug(", "); Debug(_pw_y); Debug(", ");
+        //Debug(_pw_w); Debug(", "); Debug(_pw_h); Debug(") P"); Debugln(_current_page);
         uint16_t page_ye = _current_page < (_pages - 1) ? page_ys + _page_height : HEIGHT;
         uint16_t dest_ys = _pw_y + page_ys; // transposed
         uint16_t dest_ye = gx_uint16_min(_pw_y + _pw_h, _pw_y + page_ye);
         if (dest_ye > dest_ys)
         {
-          //Serial.print("writeImage("); Serial.print(_pw_x); Serial.print(", "); Serial.print(dest_ys); Serial.print(", ");
-          //Serial.print(_pw_w); Serial.print(", "); Serial.print(dest_ye - dest_ys); Serial.println(")");
+          //Debug("writeImage("); Debug(_pw_x); Debug(", "); Debug(dest_ys); Debug(", ");
+          //Debug(_pw_w); Debug(", "); Debug(dest_ye - dest_ys); Debugln(")");
           epd2.writeNative(_pixel_buffer, 0, _pw_x, dest_ys, _pw_w, dest_ye - dest_ys);
         }
         else
         {
-          //Serial.print("writeImage("); Serial.print(_pw_x); Serial.print(", "); Serial.print(dest_ys); Serial.print(", ");
-          //Serial.print(_pw_w); Serial.print(", "); Serial.print(dest_ye - dest_ys); Serial.print(") skipped ");
-          //Serial.print(dest_ys); Serial.print(".."); Serial.println(dest_ye);
+          //Debug("writeImage("); Debug(_pw_x); Debug(", "); Debug(dest_ys); Debug(", ");
+          //Debug(_pw_w); Debug(", "); Debug(dest_ye - dest_ys); Debug(") skipped ");
+          //Debug(dest_ys); Debug(".."); Debugln(dest_ye);
         }
         _current_page++;
         if (_current_page == _pages)
