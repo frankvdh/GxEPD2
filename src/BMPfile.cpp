@@ -43,27 +43,42 @@
 
 #include <stdio.h>
 
-#define DEBUG
+//#define DEBUG
 #include "Debug.h"
 #include "BMPfile.h"
 #include "GxEPD2.h"
 
-/*Bitmap file header   14bit*/
-typedef struct BMP_FILE_HEADER {
-    uint16_t bType;        //File identifier
-    uint32_t bSize;      //The size of the file
-    uint16_t bReserved1;   //Reserved value, must be set to 0
-    uint16_t bReserved2;   //Reserved value, must be set to 0
-    uint32_t bOffset;    //The offset from the beginning of the file header to the beginning of the image data bit
-} __attribute__ ((packed)) BMPFILEHEADER;    // 14bit
+/*Bitmap file header   14 bytes */
+typedef struct {
+    uint16_t type;      //File identifier
+    uint32_t size;      //The size of the file
+    uint16_t reserved1; //Reserved value, must be set to 0
+    uint16_t reserved2; //Reserved value, must be set to 0
+    uint32_t offset;    // Ofset from beginning of file to beginning of image data
+} __attribute__ ((packed)) HEADER;    // 14bit
+
+/*Bitmap information header  40bit*/
+typedef struct {
+    uint32_t infoSize;          //The size of the header
+    uint32_t width;             //The width of the image
+    uint32_t height;            //The height of the image
+    uint16_t planes;            //The number of planes in the image
+    uint16_t bitCount;          //The number of bits per pixel
+    uint32_t compression;       //Compression type
+    uint32_t imageSize;         //The size of the image, in bytes
+    uint32_t xResolution;       //Horizontal resolution
+    uint32_t yResolution;       //Vertical resolution
+    uint32_t colours;           //The number of colors used
+    uint32_t coloursImportant;  //The number of important colors
+} __attribute__ ((packed)) INFO;
 
 /*Color table: palette */
-typedef struct RGB_QUAD {
-    uint8_t rgbBlue;               //Blue intensity
-    uint8_t rgbGreen;              //Green strength
-    uint8_t rgbRed;                //Red intensity
-    uint8_t rgbReversed;           //Reserved value
-} __attribute__ ((packed)) BMPRGBQUAD;
+typedef struct {
+    uint8_t blue;               //Blue intensity
+    uint8_t green;              //Green strength
+    uint8_t red;                //Red intensity
+    uint8_t reversed;           //Reserved value
+} __attribute__ ((packed)) RGBQUAD;
 
 /*************************************************************************
 
@@ -71,56 +86,88 @@ Read a monochrome (single-bit) bitmap from a .BMP file to a specified location i
 This does not actually update the display itself
 
 Params: path -- path to file
-        buffer: buffer to read to (assumed to be the same format as the bitmap -- bit 7 of byte = first bit
-        xStart, yStart: coordinates of the top-left corner of the image (may be negative)
-        bufWidth, bufHeight: Width & Height of display, for clipping
-        invert: Invert image colours (0xff = invert, 0x00 = don't change)
-        mirrorY: Invert the image in the Y axis
+        info: BMP INFO structure to return width asnd height
+Returns: pointer to data
 *************************************************************************/
 
-uint8_t *readBmp_Mono(const char *path, BMPINFOHEADER &bmpInfoHeader) {
-    // Binary file open
+bool BMPfile::readBmpMono(const char *path, uint8_t *buffer, int16_t dispXBytes, int16_t dispY, uint16_t dispWidth, uint16_t dispHeight, BMPfile::readMode mode, bool mirrorY) {
+    Debug("readBmpMono %s, %d, %d, %d, %d\n", path, dispXBytes, dispY, dispWidth, dispHeight);
     FILE *fp;
     if((fp = fopen(path, "rb")) == NULL) {
         Debug("Can't open %s\n", path);
-        return NULL;
+        return false;
     }
 
-    BMPFILEHEADER bmpFileHeader;
+    HEADER header;
+    INFO info;
 
-    // Set the file pointer from the beginning
     fseek(fp, 0, SEEK_SET);
-    fread(&bmpFileHeader, sizeof(BMPFILEHEADER), 1, fp);    //sizeof(BMPFILEHEADER) must be 14
-    fread(&bmpInfoHeader, sizeof(BMPINFOHEADER), 1, fp);    //sizeof(BMPFILEHEADER) must be 50
-    Debug("pixel = %d * %d\r\n", bmpInfoHeader.biWidth, bmpInfoHeader.biHeight);
+    fread(&header, sizeof(header), 1, fp);    //sizeof(header) must be 14
+    fread(&info, sizeof(INFO), 1, fp);    //sizeof(info) must be 50
+    Debug("%d * %d, bit count = %d, compression = %d\n", info.width, info.height, info.bitCount, info.compression);
 
     // Determine if it is a monochrome bitmap
-    if(bmpInfoHeader.biBitCount != 1) {
+    if(info.bitCount != 1) {
         Debug("%s is not a monochrome bitmap!\n", path);
         fclose(fp);
-        return NULL;
+        return false;
     }
 
-    uint16_t Image_Width_Byte = (bmpInfoHeader.biWidth % 8 == 0)? (bmpInfoHeader.biWidth / 8): (bmpInfoHeader.biWidth / 8 + 1);
-    uint16_t Bmp_Width_Byte = (Image_Width_Byte % 4 == 0) ? Image_Width_Byte: ((Image_Width_Byte / 4 + 1) * 4);
+    // Determine if it is a compressed bitmap
+    if(info.compression != 0) {
+        Debug("%s is a compressed bitmap!\n", path);
+        fclose(fp);
+        return false;
+    }
 
-    // Determine black and white based on the palette
-    uint16_t bmprgbquadsize = 1 << bmpInfoHeader.biBitCount;// 2^1 = 2
-    BMPRGBQUAD bmprgbquad[bmprgbquadsize];        //palette
-    fread(&bmprgbquad, sizeof(BMPRGBQUAD), bmprgbquadsize, fp);
 
-    // Read image data into the cache
-    uint8_t *buffer = (uint8_t *)malloc(bmpInfoHeader.biHeight * Bmp_Width_Byte);
-    fseek(fp, bmpFileHeader.bOffset, SEEK_SET);
-    for(uint16_t y = 0; y < bmpInfoHeader.biHeight; y++) {//Total display column
-            if(fread((char *)buffer + y * Bmp_Width_Byte, 1, Bmp_Width_Byte, fp) != Bmp_Width_Byte) {
+    // Ignore palette
+//    uint16_t rgbQuadSize = 1 << info.bitCount;// 2^1 = 2
+//    RGBQUAD rgbQuad[rgbQuadSize];        //palette
+//    fread(&rgbQuad, sizeof(RGBQUAD), rgbQuadSize, fp);
+
+    uint16_t widthBytes = (info.width + 7) >> 3;
+    if (dispY < 0) {
+        fseek(fp, widthBytes * -dispY, SEEK_CUR);
+        info.height += dispY;
+        dispY = 0;
+    }
+    if (dispY + info.height > dispHeight) info.height = dispHeight - dispY;
+
+    uint16_t dispWidthBytes = (dispWidth + 7) >> 3;
+    uint16_t readBytes = (dispXBytes + widthBytes > dispWidth) ? (dispWidth - dispXBytes) : widthBytes;
+
+    // Read image data into the buffer
+    fseek(fp, header.offset, SEEK_SET);
+    Debug("dispXBytes = %0x\n", dispXBytes);
+    for(uint16_t y = 0; y < info.height; y++) { //Total display column
+        Debug("\n%3d: ", y + dispY);
+        if (dispXBytes < 0) {
+            fseek(fp, -dispXBytes, SEEK_CUR);
+        }
+        for (uint16_t x = 0; x < readBytes; x++) {
+            uint8_t data = 0xa5;
+            if (fread(&data, 1, 1, fp) != 1) {
                 Debug("read failed: %s\n", path);
                 fclose(fp);
-                return NULL;
+                return false;
             }
+             switch (mode) {
+            case BMPfile::OVERWRITE: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] = data; break;
+            case BMPfile::INVERT: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] = ~data; break;
+            case BMPfile::XOR: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] ^= data; break;
+            case BMPfile::INVERT_XOR: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] ^= ~data; break;
+            }
+            Debug("%02x/%02x ", before, buffer[(y + dispY) * dispWidthBytes + dispXBytes + x]);
+        }
+        if (readBytes < widthBytes)
+            fseek(fp, widthBytes - readBytes, SEEK_CUR);
+        if (widthBytes & 0x03)
+            fseek(fp, 4 - (widthBytes & 0x03), SEEK_CUR);
      }
+    Debug("\n\n");
     fclose(fp);
-    return buffer;
+    return true;
 }
 
 /*************************************************************************
@@ -136,7 +183,7 @@ Params: path -- path to file
         mirrorY: Invert the image in the Y axis
 
 *************************************************************************/
-bool readBmp_4Gray(const char *path, uint8_t *buffer, uint16_t xStart, uint16_t yStart, uint16_t bufWidth, uint16_t bufHeight, uint8_t invert, bool mirrorY) {
+bool BMPfile::readBmp4Gray(const char *path, uint8_t *buffer, int16_t xStart, int16_t yStart, uint16_t bufWidth, uint16_t bufHeight, uint8_t invert, bool mirrorY) {
     // Binary file open
     FILE *fp;
     if((fp = fopen(path, "rb")) == NULL) {
@@ -144,29 +191,30 @@ bool readBmp_4Gray(const char *path, uint8_t *buffer, uint16_t xStart, uint16_t 
         return false;
     }
 
-    BMPFILEHEADER bmpFileHeader;
-    BMPINFOHEADER bmpInfoHeader;
+    HEADER header;           //bmp
+
+    INFO info;
     // Set the file pointer from the beginning
     fseek(fp, 0, SEEK_SET);
-    fread(&bmpFileHeader, sizeof(BMPFILEHEADER), 1, fp);    //sizeof(BMPFILEHEADER) must be 14
-    fread(&bmpInfoHeader, sizeof(BMPINFOHEADER), 1, fp);    //sizeof(BMPFILEHEADER) must be 50
-    Debug("pixel = %d * %d\r\n", bmpInfoHeader.biWidth, bmpInfoHeader.biHeight);
+    fread(&header, sizeof(header), 1, fp);    //sizeof(header) must be 14
+    fread(&info, sizeof(INFO), 1, fp);    //sizeof(header) must be 50
+    Debug("pixel = %d * %d\r\n", info.width, info.height);
 
     // Determine if it is a monochrome bitmap
-    if(bmpInfoHeader.biBitCount != 4) {
+    if(info.bitCount != 4) {
         Debug("%s is not a 4-bit bitmap!\n", path);
         return false;
     }
 
-    uint16_t Image_Width_Byte = (bmpInfoHeader.biWidth % 4 == 0)? (bmpInfoHeader.biWidth / 4): (bmpInfoHeader.biWidth / 4 + 1);
+    uint16_t Image_Width_Byte = (info.width % 4 == 0)? (info.width / 4): (info.width / 4 + 1);
     uint16_t bufWidthByte = (bufWidth % 2 == 0)? (bufWidth / 2): (bufWidth / 2 + 1);
     uint16_t Bmp_Width_Byte = (Image_Width_Byte % 2 == 0) ? Image_Width_Byte: ((Image_Width_Byte / 2 + 1) * 4);
 
     // Read image data into the buffer
     uint8_t Rdata;
-    fseek(fp, bmpFileHeader.bOffset, SEEK_SET);
+    fseek(fp, header.offset, SEEK_SET);
 
-    for(uint16_t y = 0; y < bmpInfoHeader.biHeight; y++) {//Total display column
+    for(uint16_t y = 0; y < info.height; y++) {//Total display column
         for(uint16_t x = 0; x < Bmp_Width_Byte; x++) {//Show a line in the line
             if(fread((char *)&Rdata, 1, 1, fp) != 1) {
                 Debug("Read failed in %s\n", path);
@@ -174,7 +222,7 @@ bool readBmp_4Gray(const char *path, uint8_t *buffer, uint16_t xStart, uint16_t 
                 return false;
             }
             if(x * 2 + xStart >= 0 && y + yStart >= 0 && x + xStart < bufWidthByte && x * 2 + xStart < bufWidth  && y + yStart < bufHeight) { //bmp
-                buffer[x + xStart + ((mirrorY ? y : bmpInfoHeader.biHeight - y - 1) + yStart) * bufWidthByte] =  Rdata ^ invert;
+                buffer[x + xStart + ((mirrorY ? y : info.height - y - 1) + yStart) * bufWidthByte] =  Rdata ^ invert;
                 // Debug("rdata = %d\r\n", Rdata);
             }
         }
@@ -196,7 +244,7 @@ Params: path -- path to file
         mirrorY: Invert the image in the Y axis
 
 *************************************************************************/
-bool readBmp_RGB_7Color(const char *path, uint16_t *buffer, uint16_t xStart, uint16_t yStart, uint16_t bufWidth, uint16_t bufHeight, bool mirrorY) {
+bool BMPfile::readBmpRgb7Color(const char *path, uint16_t *buffer, int16_t xStart, int16_t yStart, uint16_t bufWidth, uint16_t bufHeight, bool invert, bool mirrorY) {
     // Binary file open
     FILE *fp;
     if((fp = fopen(path, "rb")) == NULL) {
@@ -204,49 +252,49 @@ bool readBmp_RGB_7Color(const char *path, uint16_t *buffer, uint16_t xStart, uin
         return false;
     }
 
-    BMPFILEHEADER bmpFileHeader;
-    BMPINFOHEADER bmpInfoHeader;
+    HEADER header;
+    INFO info;
     // Set the file pointer from the beginning
     fseek(fp, 0, SEEK_SET);
-    fread(&bmpFileHeader, sizeof(BMPFILEHEADER), 1, fp);    //sizeof(BMPFILEHEADER) must be 14
-    fread(&bmpInfoHeader, sizeof(BMPINFOHEADER), 1, fp);    //sizeof(BMPFILEHEADER) must be 50
-    Debug("pixel = %d * %d\r\n", bmpInfoHeader.biWidth, bmpInfoHeader.biHeight);
+    fread(&header, sizeof(header), 1, fp);    //sizeof(header) must be 14
+    fread(&info, sizeof(INFO), 1, fp);    //sizeof(header) must be 50
+    Debug("pixel = %d * %d\r\n", info.width, info.height);
 
     // Determine if it is a monochrome bitmap
-    if(bmpInfoHeader.biBitCount != 24) {
+    if(info.bitCount != 24) {
         Debug("%s is not a 4-bit bitmap!\n", path);
         return false;
     }
 
     // Read image data into the cache
-    uint8_t Rdata[3];
-    fseek(fp, bmpFileHeader.bOffset, SEEK_SET);
+    uint8_t data[3];
+    fseek(fp, header.offset, SEEK_SET);
 
-    for(uint16_t y = 0; y < bmpInfoHeader.biHeight; y++) {
-        for(uint16_t x = 0; x < bmpInfoHeader.biWidth ; x++) {
-            if(fread((char *)Rdata, 3, 1, fp) != 1) {
+    for(uint16_t y = 0; y < info.height; y++) {
+        for(uint16_t x = 0; x < info.width ; x++) {
+            if(fread((char *)data, 3, 1, fp) != 1) {
                 fclose(fp);
                 return false;
                 break;
             }
             uint16_t colour;
-            if(Rdata[0] == 0 && Rdata[1] == 0 && Rdata[2] == 0) {
+            if(data[0] == 0 && data[1] == 0 && data[2] == 0) {
                 colour =  GxEPD_BLACK;
-            } else if(Rdata[0] == 255 && Rdata[1] == 255 && Rdata[2] == 255) {
+            } else if(data[0] == 255 && data[1] == 255 && data[2] == 255) {
                 colour =  GxEPD_WHITE;
-            } else if(Rdata[0] == 0 && Rdata[1] == 255 && Rdata[2] == 0) {
+            } else if(data[0] == 0 && data[1] == 255 && data[2] == 0) {
                 colour = GxEPD_GREEN;
-            } else if(Rdata[0] == 255 && Rdata[1] == 0 && Rdata[2] == 0) {
+            } else if(data[0] == 255 && data[1] == 0 && data[2] == 0) {
                 colour =  GxEPD_BLUE;
-            } else if(Rdata[0] == 0 && Rdata[1] == 0 && Rdata[2] == 255) {
+            } else if(data[0] == 0 && data[1] == 0 && data[2] == 255) {
                 colour =  GxEPD_RED;
-            } else if(Rdata[0] == 0 && Rdata[1] == 255 && Rdata[2] == 255) {
+            } else if(data[0] == 0 && data[1] == 255 && data[2] == 255) {
                 colour =  GxEPD_YELLOW;
-            } else if(Rdata[0] == 0 && Rdata[1] == 128 && Rdata[2] == 255) {
+            } else if(data[0] == 0 && data[1] == 128 && data[2] == 255) {
                 colour =  GxEPD_ORANGE;
             }
             if(x + xStart >= 0 && y + yStart >= 0 && x + xStart < bufWidth  && y + yStart < bufHeight)
-                buffer[x + xStart + ((mirrorY ? y : bmpInfoHeader.biHeight - y - 1) + yStart) * bufWidth] =  colour;
+                buffer[x + xStart + ((mirrorY ? y : info.height - y - 1) + yStart) * bufWidth] =  colour;
         }
     }
     fclose(fp);
