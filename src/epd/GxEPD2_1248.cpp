@@ -37,7 +37,11 @@ GxEPD2_1248::GxEPD2_1248(int8_t cs_m1, int8_t cs_s1, int8_t cs_m2, int8_t cs_s2,
                          int8_t dc1, int8_t dc2, int8_t rst1, int8_t rst2,
                          int8_t busy_m1, int8_t busy_s1, int8_t busy_m2, int8_t busy_s2) :
   GxEPD2_EPD(cs_m1, dc1, rst1, busy_m1, LOW, 10000000, WIDTH, HEIGHT, panel, hasColor, hasPartialUpdate, hasFastPartialUpdate),
-  _sck(SCK), _miso(MISO), _mosi(MOSI), _dc1(dc1), _dc2(dc2), _rst1(rst1), _rst2(rst2),
+#ifdef RPI
+#else
+  _sck(SCK), _miso(MISO), _mosi(MOSI),
+#endif
+  _dc1(dc1), _dc2(dc2), _rst1(rst1), _rst2(rst2),
   _cs_m1(cs_m1), _cs_s1(cs_s1), _cs_m2(cs_m2), _cs_s2(cs_s2),
   _busy_m1(busy_m1), _busy_s1(busy_s1), _busy_m2(busy_m2), _busy_s2(busy_s2),
   _temperature(20),
@@ -51,7 +55,11 @@ GxEPD2_1248::GxEPD2_1248(int8_t cs_m1, int8_t cs_s1, int8_t cs_m2, int8_t cs_s2,
 // constructor with minimal parameter set, standard SPI, dc1 and dc2, rst1 and rst2 to one pin, one busy used (can be -1)
 GxEPD2_1248::GxEPD2_1248(int8_t cs_m1, int8_t cs_s1, int8_t cs_m2, int8_t cs_s2, int8_t dc, int8_t rst, int8_t busy) :
   GxEPD2_EPD(23, 25, 33, 32, LOW, 10000000, WIDTH, HEIGHT, panel, hasColor, hasPartialUpdate, hasFastPartialUpdate),
-  _sck(SCK), _miso(MISO), _mosi(MOSI), _dc1(dc), _dc2(dc), _rst1(rst), _rst2(rst),
+#ifdef RPI
+#else
+  _sck(SCK), _miso(MISO), _mosi(MOSI),
+#endif
+  _dc1(dc), _dc2(dc), _rst1(rst), _rst2(rst),
   _cs_m1(cs_m1), _cs_s1(cs_s1), _cs_m2(cs_m2), _cs_s2(cs_s2),
   _busy_m1(busy), _busy_s1(busy), _busy_m2(busy), _busy_s2(busy),
   _temperature(20),
@@ -74,9 +82,12 @@ void GxEPD2_1248::init(uint32_t serial_diag_bitrate, bool initial, uint16_t rese
   _using_partial_mode = false;
   if (serial_diag_bitrate > 0)
   {
+#ifdef RPI
+#else
     Serial.begin(serial_diag_bitrate);
+#endif
     _diag_enabled = true;
-    Serial.println(); Serial.println("GxEPD2_1248::init()");
+    Debug("GxEPD2_1248::init()\n");
   }
   pinMode(_cs_m1,  OUTPUT);
   pinMode(_cs_s1,  OUTPUT);
@@ -585,7 +596,7 @@ void GxEPD2_1248::_writeDataPGM_All(const uint8_t* data, uint16_t n, int16_t fil
   }
   while (fill_with_zeroes > 0)
   {
-    SPI.transfer(0x00);
+    SPI.transfer((uint8_t)0x00);
     fill_with_zeroes--;
   }
   digitalWrite(_cs_m1, HIGH);
@@ -612,7 +623,7 @@ void GxEPD2_1248::_waitWhileAnyBusy(const char* comment, uint16_t busy_time)
       delay(1);
       if (micros() - start > _busy_timeout)
       {
-        Serial.println("Busy Timeout!");
+        Debug("Busy Timeout!\n");
         break;
       }
     }
@@ -620,10 +631,7 @@ void GxEPD2_1248::_waitWhileAnyBusy(const char* comment, uint16_t busy_time)
     {
       if (_diag_enabled)
       {
-        unsigned long elapsed = micros() - start;
-        Serial.print(comment);
-        Serial.print(" : ");
-        Serial.println(elapsed);
+         Debug("%s: %ld", comment, micros() - start);
       }
     }
     (void) start;
@@ -659,7 +667,7 @@ void GxEPD2_1248::_getMasterTemperature()
   _initSPI();
   if (_diag_enabled)
   {
-    Serial.print("Master Temperature is "); Serial.println(value);
+    Debug("Master Temperature is %d\n", value);
   }
 }
 
