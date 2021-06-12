@@ -19,8 +19,18 @@
 #define MSBFIRST 0
 #define SPI_MODE0 0
 
+#ifdef WIN64
+#define wiringPiSPIDataRW(port, value, len) Debug("SPI %d write: %02x %d\n", port, *value, len)
+#define delay(ms) {Debug("delay(%d)\n", ms); sleep(ms/1000); }
+#define delayMicroseconds(us) Debug("delay %dus\n", us)
+#define micros() 0
+#define pinMode(pin, mode)
+#define digitalWrite(pin, state)
+#define digitalRead(pin) 1
+#else
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
+#endif
 
 
 class SPISettings {
@@ -41,6 +51,10 @@ class RPI_SPI
     void _writeData(const uint8_t* data, uint16_t n);
     void _writeCommandData(const uint8_t* pCommandData, uint8_t datalen);
     void _beginTransfer();
+    static inline uint8_t transfer(uint8_t *value) {
+        wiringPiSPIDataRW(0, value, 1);
+        return *value;
+    };
     static inline uint8_t transfer(uint8_t value) {
         wiringPiSPIDataRW(0, &value, 1);
         return value;

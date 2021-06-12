@@ -29,7 +29,7 @@ SPISettings::SPISettings(uint32_t speed, uint8_t bitorder, uint8_t mode) :
 {
 }
 
-#ifdef WIN32
+#ifdef WIN64
 #else
 static int checkRaspbian(void) {
     int i;
@@ -82,7 +82,7 @@ static void setPinMode(uint16_t Pin, uint16_t Mode) {
         pinMode(Pin, OUTPUT);
     }
 }
-#endif // WIN32
+#endif // WIN64
 
 static bool setupDone = false;
 
@@ -95,7 +95,7 @@ int RPI_SPI::begin(void) {
     Debug("SPI begin\n");
     if (setupDone) return 0;
     setupDone = true;
-#ifdef WIN32
+#ifdef WIN64
 #else
     if(checkRaspbian() < 0) {
         return 1;
@@ -119,7 +119,7 @@ int RPI_SPI::begin(void) {
 
     wiringPiSPISetup(0,10000000);
     // wiringPiSPISetupMode(0, 32000000, 0);
-#endif // WIN32
+#endif // WIN64
     Debug("SPI begin complete\n");
     return 0;
 }
