@@ -31,41 +31,10 @@
 #endif
 
 #include "GxEPD2_EPD.h"
-#include "epd/GxEPD2_154.h"
-#include "epd/GxEPD2_154_D67.h"
-#include "epd/GxEPD2_154_T8.h"
-#include "epd/GxEPD2_154_M09.h"
-#include "epd/GxEPD2_154_M10.h"
-#include "epd/GxEPD2_213.h"
-#include "epd/GxEPD2_213_B72.h"
-#include "epd/GxEPD2_213_B73.h"
-#include "epd/GxEPD2_213_flex.h"
 #include "epd/GxEPD2_213_M21.h"
-#include "epd/GxEPD2_213_T5D.h"
-#include "epd/GxEPD2_260.h"
-#include "epd/GxEPD2_260_M01.h"
-#include "epd/GxEPD2_290.h"
-#include "epd/GxEPD2_290_T5.h"
-#include "epd/GxEPD2_290_T5D.h"
-#include "epd/GxEPD2_290_M06.h"
-#include "epd/GxEPD2_290_T94.h"
-#include "epd/GxEPD2_270.h"
-#include "epd/GxEPD2_371.h"
-#include "epd/GxEPD2_420.h"
-#include "epd/GxEPD2_420_M01.h"
-#include "epd/GxEPD2_583.h"
-#include "epd/GxEPD2_583_T8.h"
-#include "epd/GxEPD2_750.h"
-#include "epd/GxEPD2_750_T7.h"
-#include "epd/GxEPD2_1160_T91.h"
-#include "epd/GxEPD2_1248.h"
-#include "it8951/GxEPD2_it60.h"
-#include "it8951/GxEPD2_it60_1448x1072.h"
-
 #ifdef RPI
 #include "BMPfile.h"
 #endif
-
 template<typename GxEPD2_Type, const uint16_t page_height>
 class GxEPD2_BW : public GxEPD2_GFX_BASE_CLASS
 {
@@ -516,16 +485,18 @@ class GxEPD2_BW : public GxEPD2_GFX_BASE_CLASS
       epd2.drawImagePart(black, color, x_part, y_part, w_bitmap, h_bitmap, x, y, w, h, false, false, false);
     }
 #ifdef RPI
-    bool drawBmpFile(const char *path, int16_t x, int16_t y, bool invert = false, bool mirror_y = false) {
-      BMP_INFO info;
-      uint8_t *buffer = readBmp_Mono(path, info);
-
-      if (buffer == NULL ) return false;
-      writeImagePart(buffer, 0, 0, info.biWidth, info.biHeight, x, y, info.biWidth, info.biHeight, !invert, mirror_y);
-      refresh(true);
+    bool drawBmpFile(const char *path, uint16_t dispX, int16_t dispY, BMPfile::readMode mode = BMPfile::OVERWRITE, bool mirror_y = false) {
+      if (dispX & 7) {
+        Debug("Warning: x should be a multiple of 8");
+      }
+//      hexDump(dispX, dispY, 100, 100);
+      if (!BMPfile::readBmpMono(path, _buffer, dispX / 8, dispY, epd2.WIDTH, epd2.HEIGHT, mode, mirror_y))
+        return false;
+//      hexDump(0, 0, WIDTH, HEIGHT);
       return true;
     }
 #endif
+
     // write sprite of native data to controller memory, with screen refresh; x and w should be multiple of 8
     void drawNative(const uint8_t* data1, const uint8_t* data2, int16_t x, int16_t y, int16_t w, int16_t h, bool invert, bool mirror_y, bool pgm)
     {
@@ -549,6 +520,18 @@ class GxEPD2_BW : public GxEPD2_GFX_BASE_CLASS
     void hibernate()
     {
       epd2.hibernate();
+    }
+
+    void hexDump(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+        uint16_t numBytes = (w+7) / 8;
+        Debug("x = %d, y = %d, w = %d, h = %d\n", x, y, w, h);
+        for(uint16_t i = 0; i < h; i++) {//Total display column
+            Debug("\n%3d: ", i + y);
+            for (uint16_t j = 0; j < numBytes; j++) {
+                Debug("%02x ", _buffer[(i + y) * (WIDTH+7)/8 + j + x]);
+            }
+        }
+        Debug("\n\n");
     }
   private:
     template <typename T> static inline void

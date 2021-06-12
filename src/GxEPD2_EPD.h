@@ -12,15 +12,15 @@
 #ifndef _GxEPD2_EPD_H_
 #define _GxEPD2_EPD_H_
 
-#ifdef WIN32
-#else
 #ifdef RPI
+#ifdef WIN64
+#else
 #include <wiringPi.h>   // for delay()
+#endif
 #include "RPI_SPI.h"
 #else
 #include <Arduino.h>
 #include "SPI.h"
-#endif
 #endif
 
 #include "GxEPD2.h"
@@ -42,6 +42,10 @@ class GxEPD2_EPD
                uint16_t w, uint16_t h, GxEPD2::Panel p, bool c, bool pu, bool fpu);
     virtual void init(uint32_t serial_diag_bitrate = 0); // serial_diag_bitrate = 0 : disabled
     virtual void init(uint32_t serial_diag_bitrate, bool initial, uint16_t reset_duration = 20, bool pulldown_rst_mode = false);
+ #ifdef RPI
+static  RPI_SPI SPI;
+   void rpiEpdExit(void);
+#endif
    //  Support for Bitmaps (Sprites) to Controller Buffer and to Screen
     virtual void clearScreen(uint8_t value) = 0; // init controller memory and screen (default white)
     virtual void writeScreenBuffer(uint8_t value) = 0; // init controller memory (default white)
@@ -111,6 +115,9 @@ class GxEPD2_EPD
     void _startTransfer();
     void _transfer(uint8_t value);
     void _endTransfer();
+#ifdef RPI
+    int rpiInit(void);
+#endif
   protected:
     int8_t _cs, _dc, _rst, _busy, _busy_level;
     uint32_t _busy_timeout;

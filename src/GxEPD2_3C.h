@@ -478,8 +478,8 @@ RPI_SPI SPI;
       epd2.writeImagePart(black, color, x_part, y_part, w_bitmap, h_bitmap, x, y, w, h, invert, mirror_y, pgm);
     }
 
-    bool writeBmpFile(const char *path, int16_t x, int16_t y, const uint16_t colour, uint8_t invert = 0, bool mirror_y = false) {
-        return readBmp_Mono(path, colour == GxEPD_BLACK || colour == GxEPD_WHITE ? _black_buffer : _color_buffer, x, y, WIDTH, HEIGHT, invert, mirror_y);
+    bool writeBmpFile(const char *path, int16_t x, int16_t y, const uint16_t colour, BMPfile::readMode mode = BMPfile::OVERWRITE, bool mirror_y = false) {
+        return BMPfile::readBmpMono(path, colour == GxEPD_BLACK || colour == GxEPD_WHITE ? _black_buffer : _color_buffer, x, y, WIDTH, HEIGHT, mode, mirror_y);
     }
 
     void writeImagePart(const uint8_t* black, const uint8_t* color, int16_t x_part, int16_t y_part, int16_t w_bitmap, int16_t h_bitmap,
