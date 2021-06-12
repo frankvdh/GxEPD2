@@ -508,7 +508,7 @@ void GxEPD2_it60::_waitWhileBusy2(const char* comment, uint16_t busy_time)
       delay(1);
       if (micros() - start > _busy_timeout)
       {
-        Serial.println("Busy Timeout!");
+        Debug("Busy Timeout!\n");
         break;
       }
     }
@@ -520,9 +520,7 @@ void GxEPD2_it60::_waitWhileBusy2(const char* comment, uint16_t busy_time)
         unsigned long elapsed = micros() - start;
         if (elapsed > diag_min_time * 1000)
         {
-          Serial.print(comment);
-          Serial.print(" : ");
-          Serial.println(elapsed);
+          Debug("%s : %ld\n", comment, elapsed);
         }
       }
 #endif
@@ -540,8 +538,14 @@ uint16_t GxEPD2_it60::_transfer16(uint16_t value)
 
 void GxEPD2_it60::_writeCommand16(uint16_t c)
 {
+#ifdef RPI
+    char s[50];
+    sprintf(s, "_writeCommand16(0x%04x)", c);
+  _waitWhileBusy2(s, default_wait_time);
+#else
   String s = String("_writeCommand16(0x") + String(c, HEX) + String(")");
   _waitWhileBusy2(s.c_str(), default_wait_time);
+#endif
   SPI.beginTransaction(_spi_settings);
   if (_cs >= 0) digitalWrite(_cs, LOW);
   _transfer16(0x6000); // preamble for write command
