@@ -44,15 +44,11 @@
 #define __GUI_BMPFILE_H
 
 #include <stdint.h>
+#include "GxEPD2_EPD.h"
 class BMPfile
 {
   public:
-enum readMode {
-    OVERWRITE = 0, INVERT, XOR, INVERT_XOR
-};
-
-
-static bool readBmpMono(const char *path, uint8_t *buffer, int16_t dispXBytes, int16_t dispY, uint16_t dispWidth, uint16_t dispHeight, BMPfile::readMode mode, bool mirrorY);
+static bool readBmpMono(const char *path, uint8_t *buffer, int16_t dispXBytes, int16_t dispY, uint16_t dispWidth, uint16_t dispHeight, GxEPD2_EPD::writeMode mode, bool mirrorY);
 static bool readBmp4Gray(const char *path, uint8_t *buffer, int16_t xStart, int16_t yStart, uint16_t bufWidth, uint16_t bufHeight, uint8_t invert = 0, bool mirrorY = false);
 static bool readBmpRgb7Color(const char *path, uint16_t *buffer, int16_t xStart, int16_t yStart, uint16_t bufWidth, uint16_t bufHeight, bool invert = false, bool mirrorY = false);
 };

@@ -37,6 +37,11 @@ class GxEPD2_EPD
     const bool hasColor;
     const bool hasPartialUpdate;
     const bool hasFastPartialUpdate;
+
+enum writeMode {
+    OVERWRITE = 0, INVERT, XOR, INVERT_XOR
+};
+
     // constructor
     GxEPD2_EPD(int8_t cs, int8_t dc, int8_t rst, int8_t busy, int8_t busy_level, uint32_t busy_timeout,
                uint16_t w, uint16_t h, GxEPD2::Panel p, bool c, bool pu, bool fpu);

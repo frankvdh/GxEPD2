@@ -90,7 +90,7 @@ Params: path -- path to file
 Returns: pointer to data
 *************************************************************************/
 
-bool BMPfile::readBmpMono(const char *path, uint8_t *buffer, int16_t dispXBytes, int16_t dispY, uint16_t dispWidth, uint16_t dispHeight, BMPfile::readMode mode, bool mirrorY) {
+bool BMPfile::readBmpMono(const char *path, uint8_t *buffer, int16_t dispXBytes, int16_t dispY, uint16_t dispWidth, uint16_t dispHeight, GxEPD2_EPD::writeMode mode, bool mirrorY) {
     Debug("readBmpMono %s, %d, %d, %d, %d\n", path, dispXBytes, dispY, dispWidth, dispHeight);
     FILE *fp;
     if((fp = fopen(path, "rb")) == NULL) {
@@ -153,10 +153,10 @@ bool BMPfile::readBmpMono(const char *path, uint8_t *buffer, int16_t dispXBytes,
                 return false;
             }
              switch (mode) {
-            case BMPfile::OVERWRITE: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] = data; break;
-            case BMPfile::INVERT: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] = ~data; break;
-            case BMPfile::XOR: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] ^= data; break;
-            case BMPfile::INVERT_XOR: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] ^= ~data; break;
+            case GxEPD2_EPD::OVERWRITE: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] = data; break;
+            case GxEPD2_EPD::INVERT: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] = ~data; break;
+            case GxEPD2_EPD::XOR: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] ^= data; break;
+            case GxEPD2_EPD::INVERT_XOR: buffer[(dispY + (mirrorY ? info.height - y - 1: y)) * dispWidthBytes + dispXBytes + x] ^= ~data; break;
             }
             Debug("%02x/%02x ", before, buffer[(y + dispY) * dispWidthBytes + dispXBytes + x]);
         }

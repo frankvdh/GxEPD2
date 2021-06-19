@@ -75,8 +75,8 @@ GFX::GFX(int16_t w, int16_t h) : WIDTH(w), HEIGHT(h) {
    @param    color 16-bit 5-6-5 Color to fill with
 */
 /**************************************************************************/
-void GFX::writePixel(int16_t x, int16_t y, uint16_t color) {
-    drawPixel(x, y, color);
+void GFX::writePixel(int16_t x, int16_t y, uint16_t color, GxEPD2_EPD::writeMode mode) {
+    drawPixel(x, y, color, mode);
 }
 
 /**************************************************************************/
@@ -90,9 +90,9 @@ void GFX::writePixel(int16_t x, int16_t y, uint16_t color) {
    @param    color 16-bit 5-6-5 Color to fill with
 */
 /**************************************************************************/
-void GFX::writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+void GFX::writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, GxEPD2_EPD::writeMode mode) {
     // Overwrite in subclasses if desired!
-    fillRect(x, y, w, h, color);
+    fillRect(x, y, w, h, color, mode);
 }
 
 /**************************************************************************/
@@ -105,11 +105,11 @@ void GFX::writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t col
    @param    color 16-bit 5-6-5 Color to fill with
 */
 /**************************************************************************/
-void GFX::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
+void GFX::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, GxEPD2_EPD::writeMode mode) {
     startWrite();
     for (int16_t i = x; i < x + w; i++) {
         for (int16_t j = y; j < y + h; j++) {
-            writePixel(i, j, color);
+            writePixel(i, j, color, mode);
         }
     }
     endWrite();
@@ -135,14 +135,14 @@ void GFX::fillScreen(uint16_t color) {
     @param    color 16-bit 5-6-5 Color to draw with
 */
 /**************************************************************************/
-void GFX::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
+void GFX::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color, GxEPD2_EPD::writeMode mode) {
     startWrite();
     if (x0 == x1) {
         if (y0 > y1) _swap_int16_t(y0, y1);
-        writeFillRect(x0, y0, 1, y1 - y0 + 1, color);
+        writeFillRect(x0, y0, 1, y1 - y0 + 1, color, mode);
     } else if (y0 == y1) {
         if (x0 > x1) _swap_int16_t(x0, x1);
-        writeFillRect(x0, y0, x1 - x0 + 1, 1, color);
+        writeFillRect(x0, y0, x1 - x0 + 1, 1, color, mode);
     } else {
         int16_t steep = abs(y1 - y0) > abs(x1 - x0);
         if (steep) {
@@ -170,9 +170,9 @@ void GFX::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t colo
 
         for (; x0 <= x1; x0++) {
             if (steep) {
-                writePixel(y0, x0, color);
+                writePixel(y0, x0, color, mode);
             } else {
-                writePixel(x0, y0, color);
+                writePixel(x0, y0, color, mode);
             }
             err -= dy;
             if (err < 0) {

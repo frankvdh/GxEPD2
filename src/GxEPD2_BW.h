@@ -71,7 +71,7 @@ class GxEPD2_BW : public GxEPD2_GFX_BASE_CLASS
       return m;
     }
 
-    void drawPixel(int16_t x, int16_t y, uint16_t color)
+    void drawPixel(int16_t x, int16_t y, uint16_t color, GxEPD2_EPD::writeMode mode = GxEPD2_EPD::OVERWRITE)
     {
       if ((x < 0) || (x >= width()) || (y < 0) || (y >= height())) return;
       if (_mirror) x = width() - x - 1;
@@ -101,11 +101,20 @@ class GxEPD2_BW : public GxEPD2_GFX_BASE_CLASS
       if (_reverse) y = _page_height - y - 1;
       // check if in current page
       if ((y < 0) || (y >= _page_height)) return;
-      uint16_t i = x / 8 + y * (_pw_w / 8);
-      if (color)
-        _buffer[i] = (_buffer[i] | (1 << (7 - x % 8)));
-      else
-        _buffer[i] = (_buffer[i] & (0xFF ^ (1 << (7 - x % 8))));
+      uint8_t *bptr = _buffer + (y * (_pw_w >> 3)) + (x >> 3);
+      uint8_t bitNum = 7 - (x & 7);
+    uint8_t newColour, oldColour = 1 & (*bptr >> bitNum);
+      switch (mode) {
+      case GxEPD2_EPD::OVERWRITE: newColour = color; break;
+      case GxEPD2_EPD::INVERT: newColour = ~color; break;
+      case GxEPD2_EPD::XOR: newColour = oldColour ^ color; break;
+      case GxEPD2_EPD::INVERT_XOR: newColour = oldColour ^ ~color; break;
+      }
+
+      newColour &= 1;
+      if (newColour != oldColour) {
+        *bptr = (*bptr & (0xFF ^ (1 << bitNum))) | (newColour << bitNum);
+       }
     }
 
     bool init(uint32_t serial_diag_bitrate = 0) // = 0 : disabled
@@ -485,7 +494,7 @@ class GxEPD2_BW : public GxEPD2_GFX_BASE_CLASS
       epd2.drawImagePart(black, color, x_part, y_part, w_bitmap, h_bitmap, x, y, w, h, false, false, false);
     }
 #ifdef RPI
-    bool drawBmpFile(const char *path, uint16_t dispX, int16_t dispY, BMPfile::readMode mode = BMPfile::OVERWRITE, bool mirror_y = false) {
+    bool drawBmpFile(const char *path, uint16_t dispX, int16_t dispY, GxEPD2_EPD::writeMode mode = GxEPD2_EPD::OVERWRITE, bool mirror_y = false) {
       if (dispX & 7) {
         Debug("Warning: x should be a multiple of 8");
       }
