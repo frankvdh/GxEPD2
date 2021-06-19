@@ -64,6 +64,8 @@
 		<Unit filename="src/bitmaps/WS_Bitmaps3c400x300.h" />
 		<Unit filename="src/bitmaps/WS_Bitmaps7c192x143.h" />
 		<Unit filename="src/bitmaps/WS_Bitmaps800x600.h" />
+		<Unit filename="src/epd/GxEPD2_1160_T91.cpp" />
+		<Unit filename="src/epd/GxEPD2_1160_T91.h" />
 		<Unit filename="src/epd/GxEPD2_1248.cpp" />
 		<Unit filename="src/epd/GxEPD2_1248.h" />
 		<Unit filename="src/epd/GxEPD2_154.cpp" />
@@ -146,6 +148,29 @@
 		<Unit filename="src/epd3c/GxEPD2_750c_Z08.h" />
 		<Unit filename="src/epd3c/GxEPD2_750c_Z90.cpp" />
 		<Unit filename="src/epd3c/GxEPD2_750c_Z90.h" />
+		<Unit filename="src/fonts/FreeMonoBold9pt7b.h" />
+		<Unit filename="src/fonts/font12.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/fonts/font12CN.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/fonts/font16.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/fonts/font20.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/fonts/font24.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/fonts/font24CN.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/fonts/font8.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/fonts/fonts.h" />
 		<Unit filename="src/gfx/Fonts/FreeMono12pt7b.h" />
 		<Unit filename="src/gfx/Fonts/FreeMono18pt7b.h" />
 		<Unit filename="src/gfx/Fonts/FreeMono24pt7b.h" />
