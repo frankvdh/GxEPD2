@@ -540,7 +540,7 @@ void GxEPD2_it60_1448x1072::_writeCommand16(uint16_t c)
 {
 #ifdef RPI
     char s[50];
-    sprintf(s, "_writeCommand16(0x%04x)", c);
+    snprintf(s, sizeof(s), "_writeCommand16(0x%04x)", c);
   _waitWhileBusy2(s, default_wait_time);
 #else
   String s = String("_writeCommand16(0x") + String(c, HEX) + String(")");

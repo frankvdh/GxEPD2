@@ -232,7 +232,7 @@ void helloValue(double v, char * format) {
     display.setFont(&FreeMonoBold9pt7b);
     display.setTextColor(display.epd2.hasColor ? GxEPD_RED : GxEPD_BLACK);
     char valueString[20];
-    sprintf(valueString, format, v);
+    snprintf(valueString, sizeof(valueString), format, v);
     int16_t tbx, tby;
     uint16_t tbw, tbh;
     display.getTextBounds(valueString, 0, 0, &tbx, &tby, &tbw, &tbh);
