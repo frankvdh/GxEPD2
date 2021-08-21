@@ -31,6 +31,17 @@
 #endif
 
 #include "GxEPD2_EPD.h"
+#include "epd/GxEPD2_102.h"
+#include "epd/GxEPD2_154.h"
+#include "epd/GxEPD2_154_D67.h"
+#include "epd/GxEPD2_154_T8.h"
+#include "epd/GxEPD2_154_M09.h"
+#include "epd/GxEPD2_154_M10.h"
+#include "epd/GxEPD2_213.h"
+#include "epd/GxEPD2_213_B72.h"
+#include "epd/GxEPD2_213_B73.h"
+#include "epd/GxEPD2_213_B74.h"
+#include "epd/GxEPD2_213_flex.h"
 #include "epd/GxEPD2_213_M21.h"
 #ifdef RPI
 #include "BMPfile.h"
@@ -130,7 +141,7 @@ class GxEPD2_BW : public GxEPD2_GFX_BASE_CLASS
     // initial false for re-init after processor deep sleep wake up, if display power supply was kept
     // this can be used to avoid the repeated initial full refresh on displays with fast partial update
     // NOTE: garbage will result on fast partial update displays, if initial full update is omitted after power loss
-    // reset_duration = 20 is default; a value of 2 may help with "clever" reset circuit of newer boards from Waveshare
+    // reset_duration = 20 is default; a value of 2 may help with "clever" reset circuit of newer boards from Waveshare 
     // pulldown_rst_mode true for alternate RST handling to avoid feeding 5V through RST pin
     void init(uint32_t serial_diag_bitrate, bool initial, uint16_t reset_duration = 20, bool pulldown_rst_mode = false)
     {

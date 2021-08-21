@@ -56,6 +56,7 @@
 		<Unit filename="src/bitmaps/Bitmaps640x384.h" />
 		<Unit filename="src/bitmaps/Bitmaps648x480.h" />
 		<Unit filename="src/bitmaps/Bitmaps800x480.h" />
+		<Unit filename="src/bitmaps/Bitmaps80x128.h" />
 		<Unit filename="src/bitmaps/WS_Bitmaps104x212.h" />
 		<Unit filename="src/bitmaps/WS_Bitmaps176x264.h" />
 		<Unit filename="src/bitmaps/WS_Bitmaps3c104x212.h" />

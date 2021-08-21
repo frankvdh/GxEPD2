@@ -27,8 +27,8 @@ RPI_SPI GxEPD2_EPD::SPI;
 GxEPD2_EPD::GxEPD2_EPD(int8_t cs, int8_t dc, int8_t rst, int8_t busy, int8_t busy_level, uint32_t busy_timeout,
                        uint16_t w, uint16_t h, GxEPD2::Panel p, bool c, bool pu, bool fpu) :
   WIDTH(w), HEIGHT(h), panel(p), hasColor(c), hasPartialUpdate(pu), hasFastPartialUpdate(fpu),
-  _cs(cs), _dc(dc), _rst(rst), _busy(busy), _busy_level(busy_level), _busy_timeout(busy_timeout), _diag_enabled(false)
-  , _spi_settings(4000000, MSBFIRST, SPI_MODE0)
+  _cs(cs), _dc(dc), _rst(rst), _busy(busy), _busy_level(busy_level), _busy_timeout(busy_timeout), _diag_enabled(false),
+  _spi_settings(4000000, MSBFIRST, SPI_MODE0)
 {
   _initial_write = true;
   _initial_refresh = true;

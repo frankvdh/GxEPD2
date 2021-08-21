@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1623473163 source:/home/pi/GxEPD2-RPi/src/BMPfile.cpp
+1624079970 source:/home/pi/GxEPD2-RPi/src/BMPfile.cpp
 	<stdio.h>
 	"Debug.h"
 	"BMPfile.h"
@@ -7,10 +7,11 @@
 
 1623469386 /home/pi/GxEPD2-RPi/src/Debug.h
 
-1623473163 /home/pi/GxEPD2-RPi/src/BMPfile.h
+1624079970 /home/pi/GxEPD2-RPi/src/BMPfile.h
 	<stdint.h>
+	"GxEPD2_EPD.h"
 
-1623470205 /home/pi/GxEPD2-RPi/src/GxEPD2.h
+1629585521 /home/pi/GxEPD2-RPi/src/GxEPD2.h
 	<iostream>
 	<unistd.h>
 	"RPI_SPI.h"
@@ -32,7 +33,7 @@
 1623470205 /home/pi/GxEPD2-RPi/src/epd/GxEPD2_1160_T91.h
 	"../GxEPD2_EPD.h"
 
-1623472351 /home/pi/GxEPD2-RPi/src/GxEPD2_EPD.h
+1624079970 /home/pi/GxEPD2-RPi/src/GxEPD2_EPD.h
 	<wiringPi.h>
 	"RPI_SPI.h"
 	<Arduino.h>
@@ -219,10 +220,10 @@
 1623470205 /home/pi/GxEPD2-RPi/src/epd3c/GxEPD2_213_Z19c.h
 	"../GxEPD2_EPD.h"
 
-1623469386 source:/home/pi/GxEPD2-RPi/src/epd3c/GxEPD2_213c.cpp
+1629504688 source:/home/pi/GxEPD2-RPi/src/epd3c/GxEPD2_213c.cpp
 	"GxEPD2_213c.h"
 
-1623469386 /home/pi/GxEPD2-RPi/src/epd3c/GxEPD2_213c.h
+1629504688 /home/pi/GxEPD2-RPi/src/epd3c/GxEPD2_213c.h
 	"../GxEPD2_EPD.h"
 
 1623469386 source:/home/pi/GxEPD2-RPi/src/epd3c/GxEPD2_270c.cpp
@@ -309,13 +310,14 @@
 1623469386 source:/home/pi/GxEPD2-RPi/src/fonts/font8.c
 	"fonts.h"
 
-1623469386 source:/home/pi/GxEPD2-RPi/src/gfx/GFX_Root.cpp
+1624079970 source:/home/pi/GxEPD2-RPi/src/gfx/GFX_Root.cpp
 	"GFX_Root.h"
 	"Fonts/glcdfont.h"
 
-1623469386 /home/pi/GxEPD2-RPi/src/gfx/GFX_Root.h
+1624079970 /home/pi/GxEPD2-RPi/src/gfx/GFX_Root.h
 	"Print.h"
 	"gfxfont.h"
+	"../GxEPD2_EPD.h"
 
 1623471182 /home/pi/GxEPD2-RPi/src/gfx/Print.h
 	<inttypes.h>
@@ -335,7 +337,7 @@
 	<math.h>
 	"Print.h"
 
-1623469386 source:/home/pi/GxEPD2-RPi/src/GxEPD2_Main.cpp
+1624061485 source:/home/pi/GxEPD2-RPi/src/GxEPD2_Main.cpp
 	<math.h>
 	"Debug.h"
 	"gfx/GFX_Root.h"
@@ -346,10 +348,21 @@
 	"bitmaps/Bitmaps3c104x212.h"
 	"bitmaps/Bitmaps3c400x300.h"
 
-1623473695 /home/pi/GxEPD2-RPi/src/GxEPD2_BW.h
+1629585521 /home/pi/GxEPD2-RPi/src/GxEPD2_BW.h
 	"GxEPD2_GFX.h"
 	<Adafruit_GFX.h>
 	"GxEPD2_EPD.h"
+	"epd/GxEPD2_102.h"
+	"epd/GxEPD2_154.h"
+	"epd/GxEPD2_154_D67.h"
+	"epd/GxEPD2_154_T8.h"
+	"epd/GxEPD2_154_M09.h"
+	"epd/GxEPD2_154_M10.h"
+	"epd/GxEPD2_213.h"
+	"epd/GxEPD2_213_B72.h"
+	"epd/GxEPD2_213_B73.h"
+	"epd/GxEPD2_213_B74.h"
+	"epd/GxEPD2_213_flex.h"
 	"epd/GxEPD2_213_M21.h"
 	"BMPfile.h"
 
@@ -383,7 +396,7 @@
 	<pgmspace.h>
 	<avr/pgmspace.h>
 
-1623472327 source:/home/pi/GxEPD2-RPi/src/GxEPD2_EPD.cpp
+1629585521 source:/home/pi/GxEPD2-RPi/src/GxEPD2_EPD.cpp
 	"Debug.h"
 	"GxEPD2_EPD.h"
 	"RPI_SPI.h"
@@ -395,10 +408,10 @@
 	"RPI_SPI.h"
 	"Debug.h"
 
-1623472931 source:/home/pi/GxEPD2-RPi/src/it8951/GxEPD2_it60.cpp
+1624061485 source:/home/pi/GxEPD2-RPi/src/it8951/GxEPD2_it60.cpp
 	"GxEPD2_it60.h"
 
-1623473019 source:/home/pi/GxEPD2-RPi/src/it8951/GxEPD2_it60_1448x1072.cpp
+1624061485 source:/home/pi/GxEPD2-RPi/src/it8951/GxEPD2_it60_1448x1072.cpp
 	"GxEPD2_it60_1448x1072.h"
 
 1623473643 source:/home/pi/GxEPD2-RPi/src/main.cpp
@@ -430,4 +443,16 @@
 	"epd3c/GxEPD2_750c_Z90.h"
 
 1623469386 /home/pi/GxEPD2-RPi/src/gfx/Fonts/FreeSerif12pt7b.h
+
+1629585981 source:/home/pi/GxEPD2-RPi/src/epd/GxEPD2_102.cpp
+	"GxEPD2_102.h"
+
+1629585981 /home/pi/GxEPD2-RPi/src/epd/GxEPD2_102.h
+	"../GxEPD2_EPD.h"
+
+1629586068 source:/home/pi/GxEPD2-RPi/src/epd/GxEPD2_213_B74.cpp
+	"GxEPD2_213_B74.h"
+
+1629586068 /home/pi/GxEPD2-RPi/src/epd/GxEPD2_213_B74.h
+	"../GxEPD2_EPD.h"
 
