@@ -20,6 +20,7 @@
 - note that 7.5" e-paper displays don't work reliable if fed from 3.3V Arduino pin
 - note that Waveshare bords with "clever" reset circuit may need shortened reset pulse
 - use `init(115200, true, 2, false)` for Waveshare boards with "clever" reset circuit
+- note that Waveshare bords with "clever" reset circuit need 1k pull-up on RST on ESP8266, or different pin
 
 ### Paged Drawing, Picture Loop
  - This library uses paged drawing to limit RAM use and cope with missing single pixel update support
